@@ -17,11 +17,12 @@
 $.Snake = function(el,values){
 	/* Defaults */
 	var defaults = {
-		grid: [10,10], // Grid size / Tamaño de cuadricula
+		grid: [20,20], // Grid size / Tamaño de cuadricula
 		start: true,   // Start after load / Iniciar despues de cargar
 		snake: [1,3],  // Initial position / Posicion inicial
 		speed: 300,    // Speed in miliseconds / Velocidad en milisegundos
-		$el: el        // The jQuery container / El contenedor como objeto jQuery
+		$el: el,        // The jQuery container / El contenedor como objeto jQuery
+		t: null
 	};
 	this.vals = defaults;
 	$.extend(this.vals,values);
@@ -46,10 +47,11 @@ $.Snake.prototype = {
 		this.attachEvents();
 		
 		if(this.vals.start){
-			setTimeout(function(){
+			this.vals.t = setTimeout(function(){
 				self.go();
 			},this.vals.speed);
 		}
+		this.fruit();
 	},
 	update: function(params){
 		var validateParams, nParam = {},tmp;
@@ -175,7 +177,7 @@ $.Snake.prototype = {
 	},
 	newSnake: function(args,auto){
 		var auto = auto || false,
-			snake = new $.Snake.Snake(this.vGrid,auto);
+			snake = new $.Snake.Snake(this,auto);
 		this.snakes.push(snake);
 		if(!auto){
 			this.defSnake = snake;
@@ -194,9 +196,27 @@ $.Snake.prototype = {
 				snake.go();
 			}
 		}
-		setTimeout(function(){
+		this.vals.t = setTimeout(function(){
 			self.go();
 		},this.vals.speed);
+	},
+	fruit: function(){
+		var setFruit = false;
+		while(!setFruit){
+			setFruit = this.rndmFruit();
+		}
+		setFruit.state("fruit");
+	},
+	rndmFruit: function(){
+		var xR,yR,item;
+		xR = Math.floor(Math.random()*this.vGrid.length);
+		yR = Math.floor(Math.random()*this.vGrid.length);
+		item = this.vGrid[xR][yR];
+		if(item.state() != "off"){
+			return false;
+		}else{
+			return item
+		}
 	},
 	attachEvents: function(){
 		var target = this.defSnake;
@@ -244,13 +264,15 @@ $.Snake.Cell.prototype = {
 		}
 	}
 }
-$.Snake.Snake = function(grid,auto){
+$.Snake.Snake = function(board,auto){
 	this.auto = auto || false;
 	this.alive = true;
-	this.grid = grid;
+	this.grid = board.vGrid;
+	this.board = board;
 	this.cells = [];
 	this.head = null;
 	this.tail = null;
+	this.turnDir = "r"
 	this.dir = "r";
 	this.grow=0;
 }
@@ -303,6 +325,7 @@ $.Snake.Snake.prototype = {
 		if(!this.alive){
 			return false;
 		}
+		this.turnDir = this.dir;
 		switch(nState){
 			case "on":
 				this.death();
@@ -310,6 +333,7 @@ $.Snake.Snake.prototype = {
 			case "fruit":
 				this.grow += this.stepsPerFruit;
 				this.move(next);
+				this.board.fruit();
 			break;
 			default:
 				this.move(next);
@@ -355,7 +379,9 @@ $.Snake.Snake.prototype = {
 			u:"d",
 			d:"u",
 		}
-		this.dir = (this.dir != op[dir]) ? dir : this.dir;
+		if(this.turnDir != op[dir]){
+			this.dir = dir;
+		}
 	},
 	getNext: function(dir){
 		var cell = this.head.cell,
