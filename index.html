@@ -1,0 +1,50 @@
+<!doctype html>
+
+<html>
+    <head>
+		<title>jQuery Snake</title>
+		<!-- jQuery Libraries to reduce my coding time a little bit -->
+		<script type="text/javascript" src="jquery-2.0.3.min.js"></script>
+		<script type="text/javascript" src="snake.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				/* Game Starter */
+				$("#GridContainer").Snake();
+			})
+		</script>
+		<link rel="stylesheet" type="text/css" href="styles1.css">
+    </head>
+
+    <body>
+		<h1>Snake</h1>
+		<div id="GridContainer"></div>
+		<form id="tab" style="display:none">
+			<div>
+				<h2 class="title">Change grid size:</h2>
+				<span class="legend">
+					Min-Size: 5 cells<br />
+					Max-Size: 150 cells
+				</span>
+				<input type="text" id="gridX"> x
+				<input type="text" id="gridY">
+				<input type="button" id="UpdateGrid" class="button" value="update">
+			</div>
+			<div>
+				<h2 class="title">Change speed:</h2>
+				<select id="speed">
+					<option value="1000">Very Slow</option>
+					<option value="500">Slow</option>
+					<option value="250" selected="selected">Normal</option>
+					<option value="125">Fast</option>
+					<option value="60">UltraFast</option>
+				<select>
+			</div>
+			<div>
+				<h2 class="title">Controls:</h2>
+				<input type="button" id="btnStartStop" class="button" value="Pause">
+				<input type="button" id="btnReset" class="button" value="Reset">
+			</div>
+        	<div class="tabControl">Options</div>
+		</form>
+    </body>
+</html>
