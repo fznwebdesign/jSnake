@@ -20,8 +20,8 @@ $.Snake = function(el,values){
 		grid: [20,20],  // Grid size / Tamaño de cuadricula
 		start: true,    // Start after load / Iniciar despues de cargar
 		snake: [1,3],   // Initial position / Posicion inicial
-		speed: 300,     // Speed in miliseconds / Velocidad en milisegundos
-		enemies: 2,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
+		speed: 300,    // Speed in miliseconds / Velocidad en milisegundos
+		enemies: 5,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
 		$el: el,        // The jQuery container / El contenedor como objeto jQuery
 		walls: false,   // Has walls? / ¿Tablero con paredes?
 		fruitPos: null, // Fruit position (for NPC purposes) / Posicion de la fruta (usado por los enemigos)
@@ -190,7 +190,7 @@ $.Snake.prototype = {
 			css += "#GRID .cell.on{background-color:black;}";
 			css += "#GRID .cell.npc{background-color:#69F;}";
 			css += "#GRID .cell.dead{background-color:#BBB;}";
-			css += "#GRID .cell.fruit{background-color:#F96;}";
+			css += "#GRID .cell.fruit{background-color:#F00;}";
 			css += "#GRID input.GRIDControl{opacity:0;filter:alpha(opacity=0);position:absolute;top:0;left:0;cursor:pointer !important}";
 			$el = $("<style>");
 			$el.attr("id","GRIDCSS").append(css);
@@ -214,7 +214,7 @@ $.Snake.prototype = {
 			rand = Math.floor(Math.random()*eList.length);
 			cell = eList[rand];
 			coords = cell.getCoords();
-			this.newSnake(coords,this.vals.enemyAI);
+			this.newSnake(coords,true);
 		}
 		
 	},
@@ -348,7 +348,7 @@ $.Snake.Snake = function(board,auto,id){
 	this.turnDir = "r"
 	this.dir = "r";
 	this.grow = 0;
-	this.NPC = (this.auto) ? new $.Snake.NPC(auto,this.board,this) : false;
+	this.NPC = (this.auto) ? new $.Snake.NPC(this.board,this) : false;
 }
 $.Snake.Snake.prototype = {
 	stepsPerFruit:2,
@@ -534,8 +534,7 @@ $.Snake.Snake.prototype = {
 		return nextItem;
 	}
 }
-$.Snake.NPC = function(level,board,snake){
-	this.lvl = level || 1;
+$.Snake.NPC = function(board,snake){
 	this.board = board;
 	this.snake = snake;
 	this.headPos = [];
