@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html>
     <head>
 		<title>jQuery Snake</title>
@@ -9,10 +8,13 @@
 		<script type="text/javascript">
 			$(document).ready(function(){
 				/* Game Starter */
-				$("#GridContainer").Snake();
+				$("#GridContainer").Snake({
+					grid:[25,25],
+					enemies:5
+				});
 			})
 		</script>
-		<link rel="stylesheet" type="text/css" href="styles1.css">
+		<link rel="stylesheet" type="text/css" href="styles.css">
     </head>
 
     <body>
