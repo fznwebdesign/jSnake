@@ -17,11 +17,14 @@
 $.Snake = function(el,values){
 	/* Defaults */
 	var defaults = {
-		grid: [20,20], // Grid size / Tamaño de cuadricula
-		start: true,   // Start after load / Iniciar despues de cargar
-		snake: [1,3],  // Initial position / Posicion inicial
+		grid: [20,20],  // Grid size / Tamaño de cuadricula
+		start: true,    // Start after load / Iniciar despues de cargar
+		snake: [1,3],   // Initial position / Posicion inicial
 		speed: 300,    // Speed in miliseconds / Velocidad en milisegundos
+		enemies: 5,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
 		$el: el,        // The jQuery container / El contenedor como objeto jQuery
+		walls: false,   // Has walls? / ¿Tablero con paredes?
+		fruitPos: null, // Fruit position (for NPC purposes) / Posicion de la fruta (usado por los enemigos)
 		t: null
 	};
 	this.vals = defaults;
@@ -32,7 +35,6 @@ $.Snake = function(el,values){
 	// Initialize / Comenzar
 	this.init();
 };
-
 $.Snake.prototype = {
 	vGrid:[],
 	$grid:null,
@@ -40,21 +42,26 @@ $.Snake.prototype = {
 	defSnake:false,
 	control:null,
 	init:function(){
-		var self = this;
+		var i;
 		this.genCSS();
 		this.renderGrid();
 		this.newSnake(this.vals.snake);
+		for(i=0;i<this.vals.enemies;i++){
+			this.newNPCSnake();
+		}
+		if(this.vals.walls){
+			this.turnWalls(true);
+		}
 		this.attachEvents();
-		
 		if(this.vals.start){
-			this.vals.t = setTimeout(function(){
-				self.go();
-			},this.vals.speed);
+			this.begin();
 		}
 		this.fruit();
 	},
 	update: function(params){
-		var validateParams, nParam = {},tmp;
+		var validParams = false,
+			nParam = {},
+			tmp;
 		switch(typeof params){
 			case "undefined":
 				return;
@@ -62,17 +69,30 @@ $.Snake.prototype = {
 			case "string":
 				switch(params){
 					case "start":
+						validParams = true;
 						nParam.start = true;
 					break;
 					case "stop":
+						validParams = true;
 						nParam.start = false;
 					break;
 					case "toggle":
+						validParams = true;
 						nParam.start = (this.vals.start) ? false : true;
 					break;
-					case "reset":
-						this.reset();
+					case "walls":
+						this.turnWalls(true);
+					break;
+					case "noWalls":
+						this.turnWalls();
+					break;
+					case "toggleWalls":
+						tmp = (this.vals.walls) ? false : true;
+						this.turnWalls(tmp);
+					break;
+					case "clear":
 						this.vals.start = false;
+						this.renderGrid();
 					break;
 					default:
 					break;
@@ -87,23 +107,24 @@ $.Snake.prototype = {
 				}
 			break;
 		}
+		if(validParams){
+			params = nParam;
+		}
 		if(typeof params == "object"){
 			$.extend(this.vals,params);
 			
 			// Update grid size
 			if(!$.isEmptyObject(params.grid)){
-				tmp = this.read();
 				this.renderGrid();
-				this.print(tmp)
-				if(this.editing){
-					this.editing = false;
-					this.edit();
-				}
+				this.reloadSnakes();
+				this.fruit();
 			}
 			// Update start
-			if(typeof params.start != "undefined" && params.start){
-				if(!$.isEmptyObject(this.vals.cells) || this.vals.demo){
+			if(typeof params.start != "undefined"){
+				if(params.start){
 					this.begin();
+				}else{
+					this.vals.t = null;
 				}
 			}
 		}
@@ -113,7 +134,6 @@ $.Snake.prototype = {
 			r = 0,
 			self = this,
 			i,j,$c,$r,vC,vR,width,height,cell;
-		
 		// Min / Max grid sizes (private)
 		// Tamaños Maximo y Minimo de la cuadricula (variable privada)
 		gridLimits = [5,150];
@@ -139,9 +159,9 @@ $.Snake.prototype = {
 				vC.push(vR);
 			}
 			this.$grid.append($c);
-			this.$grid.append("<input type='text' class='GRIDControl' />")
 			this.vGrid.push(vC);
 		}
+		this.$grid.append("<input type='text' class='GRIDControl' />");
 		this.vals.$el.html(this.$grid);
 		
 		setTimeout(function(){
@@ -164,29 +184,42 @@ $.Snake.prototype = {
 		var css = "",$el=null;
 		if($("GRIDCSS").length<=0){
 			css += "#GRID{background-color:#F9F9F9;border:1px solid #CCC;padding:0 1px 1px 0;position:relative}";
+			css += "#GRID.walls{border:3px solid #000}";
 			css += "#GRID .cell{margin-left:1px;margin-top:1px;height:10px;width:10px;background-color:#FFF;}";
 			css += "#GRID .col {float:left;}";
 			css += "#GRID .cell.on{background-color:black;}";
+			css += "#GRID .cell.npc{background-color:#69F;}";
 			css += "#GRID .cell.dead{background-color:#BBB;}";
-			css += "#GRID .cell.fruit{background-color:#F96;}";
+			css += "#GRID .cell.fruit{background-color:#F00;}";
 			css += "#GRID input.GRIDControl{opacity:0;filter:alpha(opacity=0);position:absolute;top:0;left:0;cursor:pointer !important}";
 			$el = $("<style>");
 			$el.attr("id","GRIDCSS").append(css);
 			$("body").append($el);
 		}
 	},
-	newSnake: function(args,auto){
+	newSnake: function(point,auto){
 		var auto = auto || false,
-			snake = new $.Snake.Snake(this,auto);
+			id = (auto) ? this.snakes.length : false;
+			snake = new $.Snake.Snake(this,auto,id);
 		this.snakes.push(snake);
 		if(!auto){
 			this.defSnake = snake;
 		}
-		snake.start(args,"r");
+		snake.start(point);
+	},
+	newNPCSnake: function(){
+		var rand,coords,cell,
+			eList = this.getEmpty();
+		if(eList){
+			rand = Math.floor(Math.random()*eList.length);
+			cell = eList[rand];
+			coords = cell.getCoords();
+			this.newSnake(coords,true);
+		}
+		
 	},
 	go:function(){
-		var self = this,
-			i,len,snake;
+		var i,len,snake;
 		if(!this.vals.start){
 			return false;
 		}
@@ -196,26 +229,54 @@ $.Snake.prototype = {
 				snake.go();
 			}
 		}
+		this.begin();
+	},
+	begin: function(){
+		var self = this;
 		this.vals.t = setTimeout(function(){
 			self.go();
 		},this.vals.speed);
 	},
-	fruit: function(){
-		var setFruit = false;
-		while(!setFruit){
-			setFruit = this.rndmFruit();
+	reloadSnakes: function(){
+		var i,len,snake;
+		for(i=0,len=this.snakes.length;i<len;i++){
+			snake = this.snakes[i];
+			snake.grid = this.vGrid;
+			snake.redraw();
 		}
-		setFruit.state("fruit");
 	},
-	rndmFruit: function(){
-		var xR,yR,item;
-		xR = Math.floor(Math.random()*this.vGrid.length);
-		yR = Math.floor(Math.random()*this.vGrid.length);
-		item = this.vGrid[xR][yR];
-		if(item.state() != "off"){
-			return false;
+	fruit: function(){
+		var rand,cell,
+			eList = this.getEmpty();
+		if(eList){
+			rand = Math.floor(Math.random()*eList.length);
+			cell = eList[rand];
+			this.vals.fruitPos = cell.getCoords();
+			cell.state("fruit");
+		}
+	},
+	getEmpty: function(){
+		var i, j, len, x, y, len2, item,
+			res = [];
+		
+		for(i=0,len=this.vGrid.length;i<len;i++){
+			x = this.vGrid[i];
+			for(j=0,len2=x.length;j<len2;j++){
+				item = x[j];
+				if(item.state() == "off"){
+					res.push(item);
+				}
+			}
+		}
+		return (res.length > 0) ? res : false;
+	},
+	turnWalls: function(walls){
+		walls = walls || false;
+		this.vals.walls = walls;
+		if(walls){
+			this.$grid.addClass("walls");
 		}else{
-			return item
+			this.$grid.removeClass("walls");
 		}
 	},
 	attachEvents: function(){
@@ -242,10 +303,11 @@ $.Snake.prototype = {
 		}
 	}
 }
-$.Snake.Cell = function(id,$el){
+$.Snake.Cell = function(id,$el,wall){
 	this.id = id;
 	this.$el = $el;
-	this.st = "off";
+	this.wall = wall || false;
+	this.st = (this.wall) ? "wall" : "off";
 };
 $.Snake.Cell.prototype = {
 	state: function(s){
@@ -254,7 +316,9 @@ $.Snake.Cell.prototype = {
 			return this.st
 		}else{
 			this.st = s;
-			this.refresh();
+			if(!this.wall){
+				this.refresh();
+			}
 		}
 	},
 	refresh: function(){
@@ -262,11 +326,20 @@ $.Snake.Cell.prototype = {
 		if(this.st != "off"){
 			this.$el.addClass(this.st);
 		}
+	},
+	getCoords: function(){
+		var coords;
+		coords = this.id.split(",");
+		coords[0] = parseInt(coords[0]);
+		coords[1] = parseInt(coords[1]);
+		return coords;
 	}
 }
-$.Snake.Snake = function(board,auto){
+$.Snake.Snake = function(board,auto,id){
+	this.id = id || false;
 	this.auto = auto || false;
 	this.alive = true;
+	this.state = (auto) ? "npc"+" s"+this.id : "on";
 	this.grid = board.vGrid;
 	this.board = board;
 	this.cells = [];
@@ -274,20 +347,21 @@ $.Snake.Snake = function(board,auto){
 	this.tail = null;
 	this.turnDir = "r"
 	this.dir = "r";
-	this.grow=0;
+	this.grow = 0;
+	this.NPC = (this.auto) ? new $.Snake.NPC(this.board,this) : false;
 }
 $.Snake.Snake.prototype = {
 	stepsPerFruit:2,
-	start:function(args,dir){
+	start:function(point,dir){
 		var i,len,cell,p,
 			points = [];
 		this.dir = dir || "r";
-		points.push(args);
+		points.push(point);
 		
-		step = (args[0] > 0) ? args[0]-1 : this.grid.length-1 ;
-		points.splice(0, 0,[step,args[1]]);
+		step = (point[0] > 0) ? point[0]-1 : this.grid.length-1 ;
+		points.splice(0, 0,[step,point[1]]);
 		step = (step > 0) ? step-1 : this.grid.length-1 ;
-		points.splice(0, 0,[step,args[1]]);
+		points.splice(0, 0,[step,point[1]]);
 		
 		for(i=0,len=points.length;i<len;i++){
 			p = points[i];
@@ -296,7 +370,7 @@ $.Snake.Snake.prototype = {
 				prev: false
 			};
 			cell.cell = this.grid[p[0]][p[1]];
-			cell.cell.state("on");
+			cell.cell.state(this.state);
 			this.cells.push(cell);
 		}
 		this.setPrevNext();
@@ -327,8 +401,11 @@ $.Snake.Snake.prototype = {
 		}
 		this.turnDir = this.dir;
 		switch(nState){
-			case "on":
-				this.death();
+			case "off":
+				this.move(next);
+			break;
+			case "dead":
+				this.move(next);
 			break;
 			case "fruit":
 				this.grow += this.stepsPerFruit;
@@ -336,11 +413,14 @@ $.Snake.Snake.prototype = {
 				this.board.fruit();
 			break;
 			default:
-				this.move(next);
+				this.die();
 			break;
 		}
+		if(this.NPC){
+			this.dir = this.NPC.getNextDir();
+		}
 	},
-	death: function(){
+	die: function(){
 		var i, len,cell;
 		this.alive = false;
 		for(i=0,len=this.cells.length;i<len;i++){
@@ -356,7 +436,7 @@ $.Snake.Snake.prototype = {
 			},
 			newTail = this.tail.next;
 		newHead.cell = next;
-		newHead.cell.state("on");
+		newHead.cell.state(this.state);
 		newHead.next = false;
 		newHead.prev = prevHead;
 		prevHead.next = newHead;
@@ -383,34 +463,190 @@ $.Snake.Snake.prototype = {
 			this.dir = dir;
 		}
 	},
+	redraw: function(){
+		var i, len, cell;
+		for(i=0,len=this.cells.length;i<len;i++){
+			cell = this.cells[i];
+			this.reloadCell(cell);
+		}
+		if(!this.alive){
+			this.die();
+		}
+	},
+	reloadCell: function(cell){
+		var newCell = {},
+			pCords = cell.cell.getCoords();
+		if(typeof this.grid[pCords[0]] != "undefined" && typeof newCell != "undefined"){
+			newCell = this.grid[pCords[0]][pCords[1]]
+			cell.cell = newCell;
+			cell.cell.state(this.state);
+		}else{
+			this.alive = false;
+		}
+	},
 	getNext: function(dir){
 		var cell = this.head.cell,
-			cords = cell.id.split(","),
+			coords = cell.getCoords(),
 			nextCords = [],
 			nextItem = null,
-			dir = dir || this.dir;
-		cords[0] = parseInt(cords[0]);
-		cords[1] = parseInt(cords[1]);
+			dir = dir || this.dir,
+			walls = this.board.vals.walls,
+			outside = false;
 		switch(dir){
 			case "r":
-				nextCords[0] = (cords[0] >= this.grid.length-1) ? 0 : cords[0] + 1;
-				nextCords[1] = cords[1];
+				if(coords[0] >= this.grid.length-1){
+					nextCords[0] = 0;
+					outside = true;
+				}else{
+					nextCords[0] = coords[0] + 1;
+				}
+				nextCords[1] = coords[1];
 			break;
 			case "l":
-				nextCords[0] = (cords[0] < 1) ? this.grid.length-1 : cords[0] - 1;
-				nextCords[1] = cords[1];
+				if(coords[0] < 1){
+					nextCords[0] = this.grid.length-1 ;
+					outside = true;
+				}else{
+					nextCords[0] = coords[0] - 1;
+				}
+				nextCords[1] = coords[1];
 			break;
 			case "d":
-				nextCords[0] = cords[0];
-				nextCords[1] = (cords[1] >= this.grid[0].length-1) ? 0 : cords[1] + 1;
+				if(coords[1] >= this.grid[0].length-1){
+					nextCords[1] = 0;
+					outside = true;
+				}else{
+					nextCords[1] = coords[1] + 1;
+				}
+				nextCords[0] = coords[0];
 			break;
 			case "u":
-				nextCords[0] = cords[0];
-				nextCords[1] = (cords[1] < 1) ? this.grid[0].length-1 : cords[1] - 1;
+				if(coords[1] < 1){
+					nextCords[1] = this.grid[0].length-1;
+					outside = true;
+				}else{
+					nextCords[1] = coords[1] - 1;
+				}
+				nextCords[0] = coords[0];
 			break;
 		}
-		nextItem = this.grid[nextCords[0]][nextCords[1]];
+		nextItem = (walls && outside) ? new $.Snake.Cell("wall",null,true) : this.grid[nextCords[0]][nextCords[1]];
 		return nextItem;
+	}
+}
+$.Snake.NPC = function(board,snake){
+	this.board = board;
+	this.snake = snake;
+	this.headPos = [];
+	this.dir = "r";
+	this.fruitPos = board.vals.fruitPos;
+}
+$.Snake.NPC.prototype = {
+	getNextDir: function(){
+		var newDir;
+		this.dir = this.snake.dir;
+		this.fruitPos = this.board.vals.fruitPos;
+		this.headPos = this.snake.head.cell.getCoords();
+		newDir = this.evade() || this.lookFruit() || this.dir;
+		return newDir;
+	},
+	evade: function(){
+		var dirs = ["r","d","l","u"],
+			newDir = this.dir,
+			gNCell,i,len;
+		gNCell = this.snake.getNext(this.dir);
+		if(gNCell.state() == "off" || gNCell.state() == "fruit" || gNCell.state() == "dead"){
+			return false;
+		}else{
+			for(i=0,len=dirs.length;i<len;i++){
+				if(this.tryDir(dirs[i])){
+					gNCell = this.snake.getNext(dirs[i]);
+					if(gNCell.state() == "off" || gNCell.state() == "fruit" || gNCell.state() == "dead"){
+						newDir = dirs[i];
+						break;
+					}
+				}
+			}
+			return newDir;
+		}
+	},
+	lookFruit: function(){
+		var lr,ud,dist=[],i=0,len,res,gNCell,dirs = ["r","d","l","u"],order=[],tmp;
+		if(this.board.vals.walls){
+			lr = (this.fruitPos[0] == this.headPos[0]) ? false : (this.fruitPos[0] < this.headPos[0]) ? "l" : "r";
+			ud = (this.fruitPos[1] == this.headPos[1]) ? false : (this.fruitPos[1] < this.headPos[1]) ? "u" : "d";
+			order.push(lr);
+			order.push(ud);
+			tmp = dirs.join("").replace(lr,"").replace(ud,"").split("");
+			order.concat(order)
+			for(len=order.length;i<len;i++){
+				res = this.tryDir(order[i]);
+				gNCell = this.snake.getNext(res);
+				res = (gNCell.state() == "off" || gNCell.state() == "fruit" || gNCell.state() == "dead") ? res : false;
+				if(res){
+					break;
+				}
+			}
+			return res;
+		}else{
+			dist.push({name:"r",val:this.getDist("r")});
+			dist.push({name:"l",val:this.getDist("l")});
+			dist.push({name:"d",val:this.getDist("d")});
+			dist.push({name:"u",val:this.getDist("u")});
+			
+			dist.sort(function(a,b) {
+				return a.val - b.val;
+			});
+			for(len=dist.length;i<len;i++){
+				res = this.tryDir(dist[i]);
+				gNCell = this.snake.getNext(res);
+				res = (gNCell.state() == "off" || gNCell.state() == "fruit" || gNCell.state() == "dead") ? res : false;
+				if(res){
+					break;
+				}
+			}
+			return res;
+		}
+	},
+	tryDir: function(dir){
+		var op = {
+				r:"l",
+				l:"r",
+				u:"d",
+				d:"u",
+			},
+			target = (typeof dir == "object") ? dir.name : dir;
+		return (this.dir != op[target]) ? target : false;
+	},
+	getDist: function(d){
+		var form,fT,hT,o;
+		switch(d){
+			case "r":
+				fT = this.fruitPos[0];
+				hT = this.headPos[0];
+				o = true;
+			break;
+			case "l":
+				fT = this.fruitPos[0];
+				hT = this.headPos[0];
+				o = false;
+			break;
+			case "u":
+				fT = this.fruitPos[1];
+				hT = this.headPos[1];
+				o = false;
+			break;
+			case "d":
+				fT = this.fruitPos[1];
+				hT = this.headPos[1];
+				o = true;
+			break;
+		}
+		form = fT-hT;
+		form = (form<0) ? form+this.board.vGrid.length : form;
+		form = (o) ? form : this.board.vGrid.length - form;
+		form = (form == 0) ? this.board.vGrid.length : form;
+		return form;
 	}
 }
 // jQuery Plugin

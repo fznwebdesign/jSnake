@@ -1,20 +1,19 @@
 /**
- * Pedro Carrazco | Game of Life 1.0
+ * Pedro Carrazco | Snake 0.1
  * 
  * No Copyright so far
  * Sin Copyright hasta ahora
  * 
- * This project is a test for Crowd Int created by Pedro Carrazco,
+ * This project is just a hobbie, created by Pedro Carrazco,
  * reproduction is totally allowed as this code is just for fun.
  * 
- * Este proyecto es una prueba para Crowd Int creada por Pedro Carrazco,
- * cualquier reproducción es permitida debido a que este codigo tiene 
- * fines únicamente de entretenimiento.
+ * Este proyecto es solamente un hobbie, creado por Pedro Carrazco,
+ * cualquier reproduccion es permitida debido a que este codigo tiene 
+ * fines unicamente de entretenimiento.
  * 
- * @version 1.0
+ * @version 0.1
  * @author Pedro Jose Carrazco Rivera
  */
- 
  /* General Styles */
  body,html,div,h1,h2{
 	margin:0;
@@ -133,7 +132,6 @@ h1{
 	padding:5px 10px;
 }
 
- 
  /* Custom Game of Life Styles */
  #GridContainer #GRID{
 	border-radius: 5px;
@@ -142,13 +140,31 @@ h1{
 	margin-top:-50%;
  }
  #GridContainer #GRID .cell{
-	height:8px;
-	width:8px;
-
 	/* CSS3 Transitions, IE7-8 Not Available */
 	  -webkit-transition-duration: 0.2s;
 		 -moz-transition-duration: 0.2s;
 		  -ms-transition-duration: 0.2s;
 		   -o-transition-duration: 0.2s;
 			  transition-duration: 0.2s;
+ }
+ #GridContainer #GRID .cell.on{
+	background-color:black;
+ }
+ #GridContainer #GRID .cell.s1{
+	background-color:#99F;
+ }
+ #GridContainer #GRID .cell.s2{
+	background-color:#9F9;
+ }
+ #GridContainer #GRID .cell.s3{
+	background-color:#F99;
+ }
+ #GridContainer #GRID .cell.s4{
+	background-color:#FF9;
+ }
+ #GridContainer #GRID .cell.s6{
+	background-color:#F9F;
+ }
+ #GridContainer #GRID .cell.s7{
+	background-color:#9FF;
  }
