@@ -1,5 +1,5 @@
 /**
- * Pedro Carrazco | Snake 0.1
+ * Pedro Carrazco | Snake 1.0
  * 
  * No Copyright so far
  * Sin Copyright hasta ahora
@@ -199,6 +199,7 @@ $.Snake.prototype = {
 		if($("GRIDCSS").length<=0){
 			css += "#GRID{background-color:#F9F9F9;border:1px solid #CCC;padding:0 1px 1px 0;position:relative;overflow:visible;}";
 			css += "#GRID.walls{border:3px solid #000}";
+			css += "#GRID.noBoard .scoreBoard{display:none}";
 			css += "#GRID .scoreBoard{position:absolute;bottom:100%;left:0;right:0;background-color:rgba(250,250,250,0.8)}";
 			css += "#GRID .scoreBoard div{margin:5px;padding:2px;background-color:#EEE}";
 			css += "#GRID .scoreBoard div .score{display:block;float:right}";
