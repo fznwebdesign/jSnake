@@ -19,12 +19,16 @@ $.Snake = function(el,values){
 	var defaults = {
 		grid: [20,20],  // Grid size / Tamaño de cuadricula
 		start: true,    // Start after load / Iniciar despues de cargar
-		snake: [3,3],   // Initial position / Posicion inicial
+		snake: [1,3],   // Initial position / Posicion inicial
 		speed: 300,     // Speed in miliseconds / Velocidad en milisegundos
 		enemies: 1,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
+		killers: 0,     // Draw NPC enemy killer snakes / Cantidad de serpientes enemigas asesinas
+		score:true,     // Draw a score board / Mostrar tabla de puntuacion
 		$el: el,        // The jQuery container / El contenedor como objeto jQuery
-		walls: false,   // Has walls? / ¿Tablero con paredes?
+		walls: true,    // Has walls? / ¿Tablero con paredes?
 		fruitPos: null, // Fruit position (for NPC purposes) / Posicion de la fruta (usado por los enemigos)
+		fruitVal: 10,   // Points per eaten fruit / Puntos por fruta deborada
+		snakeVal: 100,  // Points per beaten snake / Puntos por serpiente derrotada
 		t: null
 	};
 	this.vals = defaults;
@@ -41,14 +45,19 @@ $.Snake.prototype = {
 	snakes:[],
 	defSnake:false,
 	control:null,
+	board: null,
 	init:function(){
 		var i;
+		this.board = new $.Snake.Board();
 		this.genCSS();
 		this.renderGrid();
-		this.newSnake(this.vals.snake);
 		for(i=0;i<this.vals.enemies;i++){
 			this.newNPCSnake();
 		}
+		for(i=0;i<this.vals.killers;i++){
+			this.newNPCSnake(true);
+		}
+		this.newSnake(this.vals.snake);
 		if(this.vals.walls){
 			this.turnWalls(true);
 		}
@@ -161,7 +170,12 @@ $.Snake.prototype = {
 			this.$grid.append($c);
 			this.vGrid.push(vC);
 		}
-		this.$grid.append("<input type='text' class='GRIDControl' />");
+		this.board.$el = $("<div>");
+		this.board.$el.addClass("scoreBoard");
+		if(!this.vals.score){
+			this.$grid.addClass("noBoard");
+		}
+		this.$grid.append("<input type='text' class='GRIDControl' />").prepend(this.board.$el);
 		this.vals.$el.html(this.$grid);
 		
 		setTimeout(function(){
@@ -183,8 +197,11 @@ $.Snake.prototype = {
 	genCSS: function(){
 		var css = "",$el=null;
 		if($("GRIDCSS").length<=0){
-			css += "#GRID{background-color:#F9F9F9;border:1px solid #CCC;padding:0 1px 1px 0;position:relative}";
+			css += "#GRID{background-color:#F9F9F9;border:1px solid #CCC;padding:0 1px 1px 0;position:relative;overflow:visible;}";
 			css += "#GRID.walls{border:3px solid #000}";
+			css += "#GRID .scoreBoard{position:absolute;bottom:100%;left:0;right:0;background-color:rgba(250,250,250,0.8)}";
+			css += "#GRID .scoreBoard div{margin:5px;padding:2px;background-color:#EEE}";
+			css += "#GRID .scoreBoard div .score{display:block;float:right}";
 			css += "#GRID .cell{margin-left:1px;margin-top:1px;height:10px;width:10px;background-color:#FFF;}";
 			css += "#GRID .col {float:left;}";
 			css += "#GRID .cell.on{background-color:black;}";
@@ -197,24 +214,26 @@ $.Snake.prototype = {
 			$("body").append($el);
 		}
 	},
-	newSnake: function(point,auto){
+	newSnake: function(point,auto,killer){
 		var auto = auto || false,
-			id = (auto) ? this.snakes.length : false;
-			snake = new $.Snake.Snake(this,auto,id);
+			killer = killer || false,
+			id = (auto) ? this.snakes.length.toString() : false,
+			snake = new $.Snake.Snake(this,auto,killer,id);
 		this.snakes.push(snake);
 		if(!auto){
 			this.defSnake = snake;
 		}
 		snake.start(point);
 	},
-	newNPCSnake: function(){
+	newNPCSnake: function(killer){
 		var rand,coords,cell,
+			killer = killer || false,
 			eList = this.getEmpty();
 		if(eList){
 			rand = Math.floor(Math.random()*eList.length);
 			cell = eList[rand];
 			coords = cell.getCoords();
-			this.newSnake(coords,true);
+			this.newSnake(coords,true,killer);
 		}
 		
 	},
@@ -228,6 +247,7 @@ $.Snake.prototype = {
 			if(snake.alive){
 				snake.go();
 			}
+			this.board.refresh(snake,i);
 		}
 		this.begin();
 	},
@@ -335,9 +355,10 @@ $.Snake.Cell.prototype = {
 		return coords;
 	}
 }
-$.Snake.Snake = function(board,auto,id){
+$.Snake.Snake = function(board,auto,killer,id){
 	this.id = id || false;
 	this.auto = auto || false;
+	this.killer = killer || false;
 	this.alive = true;
 	this.state = (auto) ? "npc"+" s"+this.id : "on";
 	this.grid = board.vGrid;
@@ -348,7 +369,8 @@ $.Snake.Snake = function(board,auto,id){
 	this.turnDir = "r"
 	this.dir = "r";
 	this.grow = 0;
-	this.NPC = (this.auto) ? new $.Snake.NPC(this.board,this) : false;
+	this.NPC = (this.auto) ? new $.Snake.NPC(this.board,this,killer) : false;
+	this.points = 0;
 }
 $.Snake.Snake.prototype = {
 	stepsPerFruit:2,
@@ -408,11 +430,13 @@ $.Snake.Snake.prototype = {
 				this.move(next);
 			break;
 			case "fruit":
+				this.points += this.board.vals.fruitVal;
 				this.grow += this.stepsPerFruit;
 				this.move(next);
 				this.board.fruit();
 			break;
 			default:
+				this.sendPointsToKiller(nState);
 				this.die();
 			break;
 		}
@@ -532,22 +556,49 @@ $.Snake.Snake.prototype = {
 		}
 		nextItem = (walls && outside) ? new $.Snake.Cell("wall",null,true) : this.grid[nextCords[0]][nextCords[1]];
 		return nextItem;
+	},
+	sendPointsToKiller: function(killer){
+		var kID = "",
+			snks = this.board.snakes,
+			i,len, snk;
+		switch(killer){
+			case "wall":
+				return false;
+			break;
+			case "on":
+				kID = "on";
+			break;
+			default:
+				kID = killer.replace("npc s","");
+			break;
+		}
+		for(i=0,len=snks.length;i<len;i++){
+			snk = snks[i];
+			if(snk.id === kID){
+				snk.points += this.board.vals.snakeVal;
+			}
+		}
+		
 	}
 }
-$.Snake.NPC = function(board,snake){
+$.Snake.NPC = function(board,snake,killer){
 	this.board = board;
 	this.snake = snake;
+	this.killer = killer || false;
 	this.headPos = [];
 	this.dir = "r";
 	this.fruitPos = board.vals.fruitPos;
+	this.userPos = null;
+	this.target = null;
 }
 $.Snake.NPC.prototype = {
 	getNextDir: function(){
 		var newDir;
 		this.dir = this.snake.dir;
 		this.fruitPos = this.board.vals.fruitPos;
+		this.userPos = this.board.defSnake.head.cell.getCoords();
 		this.headPos = this.snake.head.cell.getCoords();
-		newDir = this.evade() || this.lookFruit() || this.dir;
+		newDir = this.evade() || this.lookTarget() || this.dir;
 		return newDir;
 	},
 	evade: function(){
@@ -570,11 +621,16 @@ $.Snake.NPC.prototype = {
 			return newDir;
 		}
 	},
-	lookFruit: function(){
-		var lr,ud,dist=[],i=0,len,res,gNCell,dirs = ["r","d","l","u"],order=[],tmp;
+	lookTarget: function(){
+		var lr,ud,len,res,gNCell,tmp,
+			dist=[],
+			i=0,
+			dirs = ["r","d","l","u"],
+			order=[];
+		this.chooseTarget();
 		if(this.board.vals.walls){
-			lr = (this.fruitPos[0] == this.headPos[0]) ? false : (this.fruitPos[0] < this.headPos[0]) ? "l" : "r";
-			ud = (this.fruitPos[1] == this.headPos[1]) ? false : (this.fruitPos[1] < this.headPos[1]) ? "u" : "d";
+			lr = (this.target[0] == this.headPos[0]) ? false : (this.target[0] < this.headPos[0]) ? "l" : "r";
+			ud = (this.target[1] == this.headPos[1]) ? false : (this.target[1] < this.headPos[1]) ? "u" : "d";
 			order.push(lr);
 			order.push(ud);
 			tmp = dirs.join("").replace(lr,"").replace(ud,"").split("");
@@ -622,22 +678,22 @@ $.Snake.NPC.prototype = {
 		var form,fT,hT,o;
 		switch(d){
 			case "r":
-				fT = this.fruitPos[0];
+				fT = this.target[0];
 				hT = this.headPos[0];
 				o = true;
 			break;
 			case "l":
-				fT = this.fruitPos[0];
+				fT = this.target[0];
 				hT = this.headPos[0];
 				o = false;
 			break;
 			case "u":
-				fT = this.fruitPos[1];
+				fT = this.target[1];
 				hT = this.headPos[1];
 				o = false;
 			break;
 			case "d":
-				fT = this.fruitPos[1];
+				fT = this.target[1];
 				hT = this.headPos[1];
 				o = true;
 			break;
@@ -647,6 +703,37 @@ $.Snake.NPC.prototype = {
 		form = (o) ? form : this.board.vGrid.length - form;
 		form = (form == 0) ? this.board.vGrid.length : form;
 		return form;
+	},
+	chooseTarget: function(){
+		var uPos, fPos;
+		if(this.killer && this.board.defSnake.alive){
+			uPos = Math.abs(this.headPos[0]-this.userPos[0])+Math.abs(this.headPos[1]-this.userPos[1]);
+			fPos = Math.abs(this.headPos[0]-this.fruitPos[0])+Math.abs(this.headPos[1]-this.fruitPos[1]);
+			this.target = (uPos <= fPos) ? this.userPos : this.fruitPos;
+		}else{
+			this.target = this.fruitPos;
+		}
+	}
+}
+$.Snake.Board = function(){
+	this.snakes = [];
+	this.$el = null;
+}
+$.Snake.Board.prototype = {
+	refresh: function(s,i){
+		var $name, $score;
+		if($.isEmptyObject(this.snakes[i])){
+			this.snakes[i] = {}
+			this.snakes[i].name = (s.killer) ? "Killer Snake " + (parseInt(s.id) + 1) : (s.auto) ? "Enemy Snake " + (parseInt(s.id)+1) : "Player";
+			this.snakes[i].$el = $("<div>");
+			$name = $("<span class='name'>");
+			$name.text(this.snakes[i].name);
+			$score = $("<span class='score'>");
+			this.snakes[i].$el.append($name).append($score);
+			this.$el.append(this.snakes[i].$el);
+			console.log(this.snakes[i])
+		}
+		this.snakes[i].$el.find(".score").text(s.points);
 	}
 }
 // jQuery Plugin
