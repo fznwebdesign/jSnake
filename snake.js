@@ -19,13 +19,13 @@ $.Snake = function(el,values){
 	var defaults = {
 		grid: [20,20],  // Grid size / Tamaño de cuadricula
 		start: true,    // Start after load / Iniciar despues de cargar
-		snake: [1,3],   // Initial position / Posicion inicial
+		snake: [2,3],   // Initial position / Posicion inicial
 		speed: 300,     // Speed in miliseconds / Velocidad en milisegundos
-		enemies: 1,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
+		enemies: 0,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
 		killers: 0,     // Draw NPC enemy killer snakes / Cantidad de serpientes enemigas asesinas
-		score:true,     // Draw a score board / Mostrar tabla de puntuacion
+		score: false,   // Draw a score board / Mostrar tabla de puntuacion
 		$el: el,        // The jQuery container / El contenedor como objeto jQuery
-		walls: true,    // Has walls? / ¿Tablero con paredes?
+		walls: false,   // Has walls? / ¿Tablero con paredes?
 		fruitPos: null, // Fruit position (for NPC purposes) / Posicion de la fruta (usado por los enemigos)
 		fruitVal: 10,   // Points per eaten fruit / Puntos por fruta deborada
 		snakeVal: 100,  // Points per beaten snake / Puntos por serpiente derrotada
@@ -574,7 +574,7 @@ $.Snake.Snake.prototype = {
 		}
 		for(i=0,len=snks.length;i<len;i++){
 			snk = snks[i];
-			if(snk.id === kID){
+			if(snk.id === kID && kID != this.id){
 				snk.points += this.board.vals.snakeVal;
 			}
 		}
