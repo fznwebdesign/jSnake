@@ -19,9 +19,9 @@ $.Snake = function(el,values){
 	var defaults = {
 		grid: [20,20],  // Grid size / Tamaño de cuadricula
 		start: true,    // Start after load / Iniciar despues de cargar
-		snake: [1,3],   // Initial position / Posicion inicial
-		speed: 300,    // Speed in miliseconds / Velocidad en milisegundos
-		enemies: 5,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
+		snake: [3,3],   // Initial position / Posicion inicial
+		speed: 300,     // Speed in miliseconds / Velocidad en milisegundos
+		enemies: 1,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
 		$el: el,        // The jQuery container / El contenedor como objeto jQuery
 		walls: false,   // Has walls? / ¿Tablero con paredes?
 		fruitPos: null, // Fruit position (for NPC purposes) / Posicion de la fruta (usado por los enemigos)
