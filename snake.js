@@ -99,9 +99,17 @@ $.Snake.prototype = {
 						tmp = (this.vals.walls) ? false : true;
 						this.turnWalls(tmp);
 					break;
-					case "clear":
+					case "newEnemy":
+						this.vals.enemies++;
+						this.newNPCSnake();
+					break;
+					case "newKiller":
+						this.vals.killers++;
+						this.newNPCSnake(true);
+					break;
+					case "reset":
 						this.vals.start = false;
-						this.renderGrid();
+						this.init();
 					break;
 					default:
 					break;
@@ -127,6 +135,7 @@ $.Snake.prototype = {
 				this.renderGrid();
 				this.reloadSnakes();
 				this.fruit();
+				this.attachEvents();
 			}
 			// Update start
 			if(typeof params.start != "undefined"){
@@ -200,8 +209,9 @@ $.Snake.prototype = {
 			css += "#GRID{background-color:#F9F9F9;border:1px solid #CCC;padding:0 1px 1px 0;position:relative;overflow:visible;}";
 			css += "#GRID.walls{border:3px solid #000}";
 			css += "#GRID.noBoard .scoreBoard{display:none}";
-			css += "#GRID .scoreBoard{position:absolute;bottom:100%;left:0;right:0;background-color:rgba(250,250,250,0.8)}";
+			css += "#GRID .scoreBoard{position:absolute;bottom:100%;left:0;right:0;background-color:#FFF}";
 			css += "#GRID .scoreBoard div{margin:5px;padding:2px;background-color:#EEE}";
+			css += "#GRID .scoreBoard div.dead{background-color:#999}";
 			css += "#GRID .scoreBoard div .score{display:block;float:right}";
 			css += "#GRID .cell{margin-left:1px;margin-top:1px;height:10px;width:10px;background-color:#FFF;}";
 			css += "#GRID .col {float:left;}";
@@ -220,10 +230,10 @@ $.Snake.prototype = {
 			killer = killer || false,
 			id = (auto) ? this.snakes.length.toString() : false,
 			snake = new $.Snake.Snake(this,auto,killer,id);
-		this.snakes.push(snake);
 		if(!auto){
 			this.defSnake = snake;
 		}
+		this.snakes.push(snake);
 		snake.start(point);
 	},
 	newNPCSnake: function(killer){
@@ -247,8 +257,12 @@ $.Snake.prototype = {
 			snake = this.snakes[i];
 			if(snake.alive){
 				snake.go();
+				if(snake.id){
+					this.board.refresh(snake,i);
+				}else{
+					this.board.refreshUser(snake);
+				}
 			}
-			this.board.refresh(snake,i);
 		}
 		this.begin();
 	},
@@ -303,7 +317,7 @@ $.Snake.prototype = {
 	attachEvents: function(){
 		var target = this.defSnake;
 		if(target){
-			this.vals.$el.find(".GRIDControl").keydown(function(e){
+			this.vals.$el.find(".GRIDControl").off("keydown").keydown(function(e){
 				switch(e.keyCode){
 					case 37:
 						target.changeDir("l");
@@ -718,23 +732,52 @@ $.Snake.NPC.prototype = {
 }
 $.Snake.Board = function(){
 	this.snakes = [];
+	this.user = [];
 	this.$el = null;
 }
 $.Snake.Board.prototype = {
 	refresh: function(s,i){
 		var $name, $score;
 		if($.isEmptyObject(this.snakes[i])){
-			this.snakes[i] = {}
-			this.snakes[i].name = (s.killer) ? "Killer Snake " + (parseInt(s.id) + 1) : (s.auto) ? "Enemy Snake " + (parseInt(s.id)+1) : "Player";
+			this.snakes[i] = {};
+			this.snakes[i].alive = true;
+			this.snakes[i].name = (s.killer) ? "Killer Snake " + s.id : "Enemy Snake " + s.id;
 			this.snakes[i].$el = $("<div>");
+			this.snakes[i].$el.attr("class","NPC s"+s.id);
 			$name = $("<span class='name'>");
 			$name.text(this.snakes[i].name);
 			$score = $("<span class='score'>");
 			this.snakes[i].$el.append($name).append($score);
 			this.$el.append(this.snakes[i].$el);
-			console.log(this.snakes[i])
 		}
 		this.snakes[i].$el.find(".score").text(s.points);
+		if(!s.alive && this.snakes[i].alive){
+			this.snakes[i].$el.find(".name").append(" (dead)");
+			this.snakes[i].$el.addClass("dead");
+			this.snakes[i].alive = false;
+		}
+	},
+	refreshUser: function(s){
+		var $name, $score;
+		if($.isEmptyObject(this.user)){
+			this.user = {
+				alive: true,
+				name: "Player",
+				$el: $("<div>")
+			};
+			this.user.$el.attr("class","Player");
+			$name = $("<span class='name'>");
+			$name.text(this.user.name);
+			$score = $("<span class='score'>");
+			this.user.$el.append($name).append($score);
+			this.$el.append(this.user.$el);
+		}
+		this.user.$el.find(".score").text(s.points);
+		if(!s.alive && this.user.alive){
+			this.user.$el.find(".name").append(" (dead)");
+			this.user.$el.addClass("dead");
+			this.user.alive = false;
+		}
 	}
 }
 // jQuery Plugin
