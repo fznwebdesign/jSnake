@@ -778,6 +778,7 @@ $.Snake.Board.prototype = {
 			this.user = {
 				alive: true,
 				name: "Player",
+				points: s.points,
 				$el: $("<div>")
 			};
 			this.user.$el.attr("class","Player");
@@ -788,6 +789,7 @@ $.Snake.Board.prototype = {
 			this.$el.append(this.user.$el);
 		}
 		this.user.$el.find(".score").text(s.points);
+		this.user.points = s.points;
 		if(!s.alive && this.user.alive){
 			this.user.$el.find(".name").append(" (dead)");
 			this.user.$el.addClass("dead");
@@ -806,16 +808,19 @@ $.Snake.Board.prototype = {
 				})
 			}
 		}
+		arr.push({
+			p:this.user.points,
+			$el:this.user.$el
+		});
 		arr.sort(function(a,b){
 			 if (a.p > b.p)
 			  return -1 
 			 if (a.p < b.p)
 			  return 1
 			 return 0
-		})
+		});
 		this.$el.html("");
 		this.$el.append(this.title);
-		this.$el.append(this.user.$el);
 		for(i=0,len=arr.length;i<len;i++){
 			s = arr[i];
 			this.$el.append(s.$el);
