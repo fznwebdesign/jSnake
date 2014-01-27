@@ -100,6 +100,15 @@ $.Snake.prototype = {
 						tmp = (this.vals.walls) ? false : true;
 						this.turnWalls(tmp);
 					break;
+					case "toggleScore":
+						tmp = (this.vals.score) ? false : true;
+						if(!tmp){
+							this.$grid.addClass("noBoard");
+						}else{
+							this.$grid.removeClass("noBoard");
+						}
+						this.vals.score = tmp;
+					break;
 					case "newEnemy":
 						this.vals.enemies++;
 						this.newNPCSnake();
