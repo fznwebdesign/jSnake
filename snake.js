@@ -264,6 +264,12 @@ $.Snake.prototype = {
 				}
 			}
 		}
+		for(i=0,len=this.snakes.length;i<len;i++){
+			snake = this.snakes[i];
+			if(snake.id){
+				snake.updateDir();
+			}
+		}
 		this.begin();
 	},
 	begin: function(){
@@ -433,6 +439,7 @@ $.Snake.Snake.prototype = {
 	go: function(){
 		var next = this.getNext(),
 			nState = next.state();
+		console.log("snake " + this.id + " moves to " + nState);
 		if(!this.alive){
 			return false;
 		}
@@ -455,13 +462,17 @@ $.Snake.Snake.prototype = {
 				this.die();
 			break;
 		}
+	},
+	updateDir:function(){
 		if(this.NPC){
+			console.log("next dir")
 			this.dir = this.NPC.getNextDir();
 		}
 	},
 	die: function(){
 		var i, len,cell;
 		this.alive = false;
+		console.log("snake ",this.id," is dead")
 		for(i=0,len=this.cells.length;i<len;i++){
 			cell = this.cells[i];
 			cell.cell.state("dead");
@@ -621,6 +632,7 @@ $.Snake.NPC.prototype = {
 			newDir = this.dir,
 			gNCell,i,len;
 		gNCell = this.snake.getNext(this.dir);
+		console.log(gNCell.state())
 		if(gNCell.state() == "off" || gNCell.state() == "fruit" || gNCell.state() == "dead"){
 			return false;
 		}else{
@@ -736,12 +748,12 @@ $.Snake.Board = function(){
 	this.$el = null;
 }
 $.Snake.Board.prototype = {
-	refresh: function(s,i){
-		var $name, $score;
+	refresh: function(s){
+		var $name, $score, i=s.id;
 		if($.isEmptyObject(this.snakes[i])){
 			this.snakes[i] = {};
 			this.snakes[i].alive = true;
-			this.snakes[i].name = (s.killer) ? "Killer Snake " + s.id : "Enemy Snake " + s.id;
+			this.snakes[i].name = (s.killer) ? "Killer Snake " + i : "Enemy Snake " + i;
 			this.snakes[i].$el = $("<div>");
 			this.snakes[i].$el.attr("class","NPC s"+s.id);
 			$name = $("<span class='name'>");
