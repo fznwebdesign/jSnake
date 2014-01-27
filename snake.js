@@ -581,7 +581,7 @@ $.Snake.Snake.prototype = {
 				return false;
 			break;
 			case "on":
-				kID = "on";
+				kID = false;
 			break;
 			default:
 				kID = killer.replace("npc s","");
