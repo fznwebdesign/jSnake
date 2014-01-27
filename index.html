@@ -10,8 +10,64 @@
 				/* Game Starter */
 				$("#GridContainer").Snake({
 					grid:[25,25],
-					enemies:5
+					score:true
 				});
+				
+				// Open-Close Control Tab
+				$("#tab .tabControl").on("click",function(){
+						var $el = $("#tab");
+						if($el.hasClass("closed")){
+								$el.removeClass("closed");
+						}else{
+								$el.addClass("closed");
+						}
+				});
+				
+				/* jQuery Controls */
+				
+				// Grid size
+				$("#UpdateGrid").on("click",function(){
+						var valX = parseInt($("#gridX").val()),
+							valY = parseInt($("#gridY").val());
+						if(valX>0 && valY>0){
+							$("#GridContainer").Snake([valX,valY]);
+						}
+				});
+				// Speed
+				$("#speed").on("change",function(){
+					$("#GridContainer").Snake(parseInt($("#speed").val()));
+				});
+				// Toogle Walls
+				$("#enableWalls").on("click",function(){
+					if(this.checked){
+						$("#GridContainer").Snake("walls");
+					}else{
+						$("#GridContainer").Snake("noWalls");
+					}
+				});
+				// Add Enemy Snake
+				$("#btnAddEnemy").on("click",function(){
+						$("#GridContainer").Snake("newEnemy");
+				});
+				// Add Killer Snake
+				$("#btnAddKiller").on("click",function(){
+						$("#GridContainer").Snake("newKiller");
+				});
+				// Start / Stop button
+				$("#btnStartStop").on("click",function(){
+						$("#GridContainer").Snake("toggle");
+						updateBtn();
+				});
+				// Reset button
+				$("#btnReset").on("click",function(){
+						$("#GridContainer").Snake("reset");
+						updateBtn();
+				});
+				
+				updateBtn = function(){
+						var newVal = ($("#GridContainer").data("Snake").vals.start) ? "Stop" : "Start";
+						$("#btnStartStop").val(newVal);
+				}
 			})
 		</script>
 		<link rel="stylesheet" type="text/css" href="styles.css">
@@ -20,16 +76,16 @@
     <body>
 		<h1>Snake</h1>
 		<div id="GridContainer"></div>
-		<form id="tab" style="display:none">
+		<form id="tab">
 			<div>
 				<h2 class="title">Change grid size:</h2>
 				<span class="legend">
 					Min-Size: 5 cells<br />
 					Max-Size: 150 cells
 				</span>
-				<input type="text" id="gridX"> x
-				<input type="text" id="gridY">
-				<input type="button" id="UpdateGrid" class="button" value="update">
+				<input type="text" id="gridX" /> x
+				<input type="text" id="gridY" />
+				<input type="button" id="UpdateGrid" class="button" value="update" />
 			</div>
 			<div>
 				<h2 class="title">Change speed:</h2>
@@ -40,6 +96,18 @@
 					<option value="125">Fast</option>
 					<option value="60">UltraFast</option>
 				<select>
+			</div>
+			<div>
+				<h2 class="title">Walls:</h2>
+				<label>
+					<input type="checkbox" id="enableWalls" />
+					Active
+				<label>
+			</div>
+			<div>
+				<h2 class="title">Add Enemies:</h2>
+				<input type="button" id="btnAddEnemy" class="button" value="Snake">
+				<input type="button" id="btnAddKiller" class="button" value="Killer Snake">
 			</div>
 			<div>
 				<h2 class="title">Controls:</h2>
