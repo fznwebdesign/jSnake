@@ -44,11 +44,12 @@ $.Snake.prototype = {
 	$grid:null,
 	snakes:[],
 	defSnake:false,
-	control:null,
 	board: null,
 	init:function(){
 		var i;
-		this.board = new $.Snake.Board();
+		this.snakes = [];
+		this.defSnake = false,
+		this.board = new $.Snake.Board(this);
 		this.genCSS();
 		this.renderGrid();
 		for(i=0;i<this.vals.enemies;i++){
@@ -270,6 +271,7 @@ $.Snake.prototype = {
 				snake.updateDir();
 			}
 		}
+		this.board.sort();
 		this.begin();
 	},
 	begin: function(){
@@ -439,7 +441,6 @@ $.Snake.Snake.prototype = {
 	go: function(){
 		var next = this.getNext(),
 			nState = next.state();
-		console.log("snake " + this.id + " moves to " + nState);
 		if(!this.alive){
 			return false;
 		}
@@ -465,14 +466,12 @@ $.Snake.Snake.prototype = {
 	},
 	updateDir:function(){
 		if(this.NPC){
-			console.log("next dir")
 			this.dir = this.NPC.getNextDir();
 		}
 	},
 	die: function(){
 		var i, len,cell;
 		this.alive = false;
-		console.log("snake ",this.id," is dead")
 		for(i=0,len=this.cells.length;i<len;i++){
 			cell = this.cells[i];
 			cell.cell.state("dead");
@@ -632,7 +631,6 @@ $.Snake.NPC.prototype = {
 			newDir = this.dir,
 			gNCell,i,len;
 		gNCell = this.snake.getNext(this.dir);
-		console.log(gNCell.state())
 		if(gNCell.state() == "off" || gNCell.state() == "fruit" || gNCell.state() == "dead"){
 			return false;
 		}else{
@@ -742,10 +740,13 @@ $.Snake.NPC.prototype = {
 		}
 	}
 }
-$.Snake.Board = function(){
+$.Snake.Board = function(board){
+	this.board = board;
 	this.snakes = [];
-	this.user = [];
+	this.positions = [];
+	this.user = {};
 	this.$el = null;
+	this.title = $("<h2>").text("Score");
 }
 $.Snake.Board.prototype = {
 	refresh: function(s){
@@ -756,6 +757,7 @@ $.Snake.Board.prototype = {
 			this.snakes[i].name = (s.killer) ? "Killer Snake " + i : "Enemy Snake " + i;
 			this.snakes[i].$el = $("<div>");
 			this.snakes[i].$el.attr("class","NPC s"+s.id);
+			this.snakes[i].points=0;
 			$name = $("<span class='name'>");
 			$name.text(this.snakes[i].name);
 			$score = $("<span class='score'>");
@@ -763,6 +765,7 @@ $.Snake.Board.prototype = {
 			this.$el.append(this.snakes[i].$el);
 		}
 		this.snakes[i].$el.find(".score").text(s.points);
+		this.snakes[i].points = s.points;
 		if(!s.alive && this.snakes[i].alive){
 			this.snakes[i].$el.find(".name").append(" (dead)");
 			this.snakes[i].$el.addClass("dead");
@@ -789,6 +792,33 @@ $.Snake.Board.prototype = {
 			this.user.$el.find(".name").append(" (dead)");
 			this.user.$el.addClass("dead");
 			this.user.alive = false;
+		}
+	},
+	sort: function(){
+		var arr = [],
+			i,len,s;
+		for(i=0,len=this.snakes.length;i<len;i++){
+			s = this.snakes[i];
+			if(! $.isEmptyObject(s)){
+				arr.push({
+					p:s.points,
+					$el:s.$el
+				})
+			}
+		}
+		arr.sort(function(a,b){
+			 if (a.p > b.p)
+			  return -1 
+			 if (a.p < b.p)
+			  return 1
+			 return 0
+		})
+		this.$el.html("");
+		this.$el.append(this.title);
+		this.$el.append(this.user.$el);
+		for(i=0,len=arr.length;i<len;i++){
+			s = arr[i];
+			this.$el.append(s.$el);
 		}
 	}
 }
