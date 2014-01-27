@@ -48,7 +48,7 @@ h1{
 	left:50%;
 	overflow:visible;
 	padding:5px;
-	position:absolute;
+	position:fixed;
 	top:50%;
 }
 /* Control Tab */
@@ -132,14 +132,14 @@ h1{
 	padding:5px 10px;
 }
 
- /* Custom Game of Life Styles */
- #GridContainer #GRID{
+ /* Custom jSnake */
+#GridContainer #GRID{
 	border-radius: 5px;
 	box-shadow:0px 0px 10px #000;
 	margin-left:-50%;
 	margin-top:-50%;
- }
- #GridContainer #GRID .cell{
+}
+#GridContainer #GRID .cell{
 	/* CSS3 Transitions, IE7-8 Not Available */
 	  -webkit-transition-duration: 0.2s;
 		 -moz-transition-duration: 0.2s;
@@ -147,24 +147,48 @@ h1{
 		   -o-transition-duration: 0.2s;
 			  transition-duration: 0.2s;
  }
- #GridContainer #GRID .cell.on{
-	background-color:black;
- }
- #GridContainer #GRID .cell.s1{
-	background-color:#99F;
- }
- #GridContainer #GRID .cell.s2{
-	background-color:#9F9;
- }
- #GridContainer #GRID .cell.s3{
-	background-color:#F99;
- }
- #GridContainer #GRID .cell.s4{
-	background-color:#FF9;
- }
- #GridContainer #GRID .cell.s6{
-	background-color:#F9F;
- }
- #GridContainer #GRID .cell.s7{
-	background-color:#9FF;
- }
+#GridContainer #GRID .cell.on{background-color:black;}
+#GridContainer #GRID .cell.npc{background-color:#999;}
+#GridContainer #GRID .cell.npc.s1{background-color:#99F;}
+#GridContainer #GRID .cell.npc.s2{background-color:#9F9;}
+#GridContainer #GRID .cell.npc.s3{background-color:#F99;}
+#GridContainer #GRID .cell.npc.s4{background-color:#FF9;}
+#GridContainer #GRID .cell.npc.s5{background-color:#F9F;}
+#GridContainer #GRID .cell.npc.s6{background-color:#9FF;}
+#GridContainer #GRID .scoreBoard {
+	background-color: #CCC;
+	border-radius: 0 5px 5px 0;
+	bottom: auto;
+	font: 14px/1 Arial, sans-serif;
+	font-weight: bold;
+	left: 0;
+	padding: 2px 6px;
+	position:fixed;
+	right: auto;
+	top: 60px;
+	width: 220px;
+}
+#GridContainer #GRID .scoreBoard h2{
+	color:#565F66;
+	font-size:18px;
+	margin:0;
+	padding:5px 0;
+}
+#GridContainer #GRID .scoreBoard  div{
+	background-color:#565F66;
+	border-radius:3px;
+	margin:2px 0;
+	padding: 5px;
+}
+#GridContainer #GRID .scoreBoard  div.dead{
+	opacity:0.3;
+	filter:alpha(opacity=30);
+}
+#GridContainer #GRID .scoreBoard  div.Player{color:#DDD;}
+#GridContainer #GRID .scoreBoard  div.NPC{color:#999;}
+#GridContainer #GRID .scoreBoard  div.NPC.s1{color: #99F;}
+#GridContainer #GRID .scoreBoard  div.NPC.s2{color: #9F9;}
+#GridContainer #GRID .scoreBoard  div.NPC.s3{color: #F99;}
+#GridContainer #GRID .scoreBoard  div.NPC.s4{color: #FF9;}
+#GridContainer #GRID .scoreBoard  div.NPC.s5{color: #F9F;}
+#GridContainer #GRID .scoreBoard  div.NPC.s6{color: #99F;}
