@@ -3,11 +3,13 @@ jSnake v0.1
 
 A hobbie project to create a jQuery snake plugin.
 
+Please check the [wiki](https://github.com/fznwebdesign/jSnake/wiki) for implementation instructions and tips, just to make sure you are leveraging all the game's features.
+
 ## Controls
 
 In order to control your Snake, you need to click on the board to start catching the keyboard events.
 
-The movement is controlled by the arroy keys.
+The movement of your snake is controlled by the arroy keys.
 
 ## Rules
 
@@ -24,7 +26,7 @@ You can also add some enemies to the game to make things interesting.
 There are 2 types of NPC enemy snakes:
 
 **Regular Enemies**: Will compete with you for those fruits.
-**Killer Enemies**: Will compete with you for those fruits, but also try to kill you if you are close to them.
+**Killer Enemies**: Will compete with you for those fruits, but also try to kill you if you get close to them.
 
 ## Score Board
 
@@ -32,7 +34,7 @@ There is also a Score Board included on the plugin (not enabled by default), her
 
 ## CSS Customization
 
-All the items have very simple styling, the idea is that everybody can easily customize their own games, so, feel free to play with the CSS of the game's elements.
+All the items on the game are CSS-styled; you will find that the default styling are basic and plain, well... the idea is that everybody can easily customize their own games, so feel free to play with the CSS.
 
 
 Enjoy!
