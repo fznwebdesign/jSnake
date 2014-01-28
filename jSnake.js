@@ -11,7 +11,7 @@
  * cualquier reproduccion es permitida debido a que este codigo tiene 
  * fines unicamente de entretenimiento.
  * 
- * @version 0.1
+ * @version 1.0
  * @author Pedro Jose Carrazco Rivera
  */
 $.Snake = function(el,values){
