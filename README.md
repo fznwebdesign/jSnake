@@ -1,7 +1,7 @@
 jSnake v1.0
 ======
 
-A hobbie project to create a jQuery snake plugin.
+A hobby project to create a jQuery snake plugin.
 
 Please check the [wiki](https://github.com/fznwebdesign/jSnake/wiki) for implementation instructions and tips, just to make sure you are leveraging all the game's features.
 
