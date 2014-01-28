@@ -808,6 +808,9 @@ $.Snake.Board.prototype = {
 	sort: function(){
 		var arr = [],
 			i,len,s;
+		if(navigator.userAgent.indexOf("Trident") > 0){
+			return false;
+		}
 		for(i=0,len=this.snakes.length;i<len;i++){
 			s = this.snakes[i];
 			if(! $.isEmptyObject(s)){
