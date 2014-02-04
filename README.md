@@ -5,6 +5,12 @@ A hobby project to create a jQuery snake plugin.
 
 Please check the [wiki](https://github.com/fznwebdesign/jSnake/wiki) for implementation instructions and tips, just to make sure you are leveraging all the game's features.
 
+## Requirements
+
+This project uses jQuery 2.0.3 which is only compatible with IE9 or later.
+
+To run on IE8- you can try with a older version of jQuery, but I cannot assure it will fully work.
+
 ## Controls
 
 In order to control your Snake, you need to click on the board to start catching the keyboard events.
