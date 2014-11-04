@@ -15,7 +15,7 @@ To run on IE8- you can try with a older version of jQuery, but I cannot assure i
 
 In order to control your Snake, you need to click on the board to start catching the keyboard events.
 
-The movement of your snake is controlled by the arroy keys.
+The movement of your snake is controlled by the arrow keys.
 
 ## Rules
 
