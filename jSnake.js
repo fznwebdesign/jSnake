@@ -20,6 +20,7 @@ $.Snake = function(el,values){
 		grid: [20,20],  // Grid size / Tamaño de cuadricula
 		start: true,    // Start after load / Iniciar despues de cargar
 		snake: [2,3],   // Initial position / Posicion inicial
+		controls: auto,// Show Controls by default / Mostrar controles
 		speed: 300,     // Speed in miliseconds / Velocidad en milisegundos
 		enemies: 0,     // Draw NPC enemy snakes / Cantidad de serpientes enemigas
 		killers: 0,     // Draw NPC enemy killer snakes / Cantidad de serpientes enemigas asesinas
@@ -45,11 +46,13 @@ $.Snake.prototype = {
 	snakes:[],
 	defSnake:false,
 	board: null,
+	controls: null,
 	init:function(){
 		var i;
 		this.snakes = [];
 		this.defSnake = false,
 		this.board = new $.Snake.Board(this);
+		this.attachControls();
 		this.genCSS();
 		this.renderGrid();
 		for(i=0;i<this.vals.enemies;i++){
@@ -195,6 +198,10 @@ $.Snake.prototype = {
 			this.$grid.addClass("noBoard");
 		}
 		this.$grid.append("<input type='text' class='GRIDControl' />").prepend(this.board.$el);
+		if(this.controls){
+			this.controls.reattach();
+		}
+		this.$grid.find(".GRIDControl").focus();
 		this.vals.$el.html(this.$grid);
 		
 		setTimeout(function(){
@@ -203,7 +210,7 @@ $.Snake.prototype = {
 			height = (parseInt(self.$grid.find(".cell").css("height"))*self.vals.grid[1])+self.vals.grid[1];
 			self.$grid.css({width:width+"px",height:height+"px"});
 			self.vals.$el.find(".GRIDControl").css({width:width+"px",height:height+"px"});
-		},10)
+		},100)
 	},
 	validateGrid: function(grid){
 		// Check format / Revisar el formato
@@ -219,6 +226,8 @@ $.Snake.prototype = {
 			css += "#GRID{background-color:#F9F9F9;border:1px solid #CCC;padding:0 1px 1px 0;position:relative;overflow:visible;}";
 			css += "#GRID.walls{border:3px solid #000}";
 			css += "#GRID.noBoard .scoreBoard{display:none}";
+			css += "#GRID .controlPanel{position:absolute;top:100%;left:0;right:0;background-color:#FFF;overflow:hidden}";
+			css += "#GRID .controlPanel a{display:block;padding:10px 0;float:left;width:25%;text-align:center;cursor:pointer}";
 			css += "#GRID .scoreBoard{position:absolute;bottom:100%;left:0;right:0;background-color:#FFF}";
 			css += "#GRID .scoreBoard div{margin:5px;padding:2px;background-color:#EEE}";
 			css += "#GRID .scoreBoard div.dead{background-color:#999}";
@@ -352,6 +361,12 @@ $.Snake.prototype = {
 						return false;
 				}
 			});
+		}
+	},
+	attachControls: function(){
+		var c = this.vals.controls || false;
+		if(c === true || (c === "auto" && /Android|Mobile/gi.test(navigator.userAgent))){
+			this.controls = new $.Snake.Controls(this);
 		}
 	}
 }
@@ -836,6 +851,45 @@ $.Snake.Board.prototype = {
 		for(i=0,len=arr.length;i<len;i++){
 			s = arr[i];
 			this.$el.append(s.$el);
+		}
+	}
+}
+$.Snake.Controls = function(board){
+	this.board = board;
+	this.buttons = [];
+	this.arrows = [
+		{label:"Up",   dir:"u"},
+		{label:"Left", dir:"l"},
+		{label:"Right",dir:"r"},
+		{label:"Down", dir:"d"}
+	];
+	this.$el = $("<div class='controlPanel'>");
+	this.createButtons();
+}
+$.Snake.Controls.prototype = {
+	reattach: function(){
+		this.board.$grid.prepend(this.$el);
+	},
+	createButtons: function(){
+		var i = 0,
+			len = this.arrows.length,
+			self = this,
+			a,tmp;
+		this.$el.empty();
+		for(; i < len; i++){
+			a = this.arrows[i]
+			tmp = $("<a>");
+			tmp.attr("id","jSnakeBtn_" + a.dir).text(a.label).data("action",a.dir);
+			tmp.on("click",function(){self.buttonClick(this)});
+			this.$el.append(tmp);
+		}
+	},
+	buttonClick: function(el){
+		console.log(this.board)
+		var target = this.board.defSnake || false,
+			dir = $(el).data("action") || false;
+		if(target && dir){
+			target.changeDir(dir);
 		}
 	}
 }
