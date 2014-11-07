@@ -1,5 +1,5 @@
 /**
- * Pedro Carrazco | Snake 1.0
+ * Pedro Carrazco | Snake 1.1.0
  * 
  * No Copyright so far
  * Sin Copyright hasta ahora
