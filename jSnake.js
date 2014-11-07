@@ -201,7 +201,6 @@ $.Snake.prototype = {
 		if(this.controls){
 			this.controls.reattach();
 		}
-		this.$grid.find(".GRIDControl").focus();
 		this.vals.$el.html(this.$grid);
 		
 		setTimeout(function(){
@@ -210,6 +209,7 @@ $.Snake.prototype = {
 			height = (parseInt(self.$grid.find(".cell").css("height"))*self.vals.grid[1])+self.vals.grid[1];
 			self.$grid.css({width:width+"px",height:height+"px"});
 			self.vals.$el.find(".GRIDControl").css({width:width+"px",height:height+"px"});
+			self.$grid.find(".GRIDControl").focus();
 		},100)
 	},
 	validateGrid: function(grid){
@@ -879,7 +879,7 @@ $.Snake.Controls.prototype = {
 		for(; i < len; i++){
 			a = this.arrows[i]
 			tmp = $("<a>");
-			tmp.attr("id","jSnakeBtn_" + a.dir).text(a.label).data("action",a.dir);
+			tmp.attr("id","jSnakeBtn" + a.dir).text(a.label).data("action",a.dir);
 			tmp.on("click",function(){self.buttonClick(this)});
 			this.$el.append(tmp);
 		}
@@ -891,6 +891,7 @@ $.Snake.Controls.prototype = {
 		if(target && dir){
 			target.changeDir(dir);
 		}
+		this.board.$grid.find(".GRIDControl").focus();
 	}
 }
 // jQuery Plugin
