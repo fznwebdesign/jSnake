@@ -192,3 +192,41 @@ h1{
 #GridContainer #GRID .scoreBoard  div.NPC.s4{color: #FF9;}
 #GridContainer #GRID .scoreBoard  div.NPC.s5{color: #F9F;}
 #GridContainer #GRID .scoreBoard  div.NPC.s6{color: #99F;}
+
+/* Control Panel */ 
+
+#GRID div.controlPanel {
+	background-color:transparent;
+	bottom: 5px;
+	left: 50%;
+	margin-left: -90px;
+	overflow:hidden;
+	position: fixed;
+	right: initial;
+	top: auto;
+	width: 200px;
+}
+#GRID div.controlPanel a {
+	background-color: #565F66;
+	width: 30%;
+	border: 5px solid #CCC;
+	border-radius: 5px;
+	color: #CCC;
+	font-size: 14px;
+	font-weight: bold;
+}
+#GRID div.controlPanel #jSnakeBtnu {
+	float: none;
+	margin: 0 auto;
+}
+#GRID div.controlPanel #jSnakeBtnd{
+	margin: 0 auto;
+	float: none;
+	clear: both;
+}
+#GRID div.controlPanel #jSnakeBtnl {
+
+}
+#GRID div.controlPanel #jSnakeBtnr {
+	float: right;
+}
