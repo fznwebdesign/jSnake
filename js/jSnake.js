@@ -47,6 +47,7 @@ $.Snake.prototype = {
 	defSnake:false,
 	board: null,
 	controls: null,
+	isMobile: /Android|Mobile/gi.test(navigator.userAgent),
 	init:function(){
 		var i;
 		this.snakes = [];
@@ -197,7 +198,9 @@ $.Snake.prototype = {
 		if(!this.vals.score){
 			this.$grid.addClass("noBoard");
 		}
-		this.$grid.append("<input type='text' class='GRIDControl' />").prepend(this.board.$el);
+		if(!self.isMobile)
+			this.$grid.append("<input type='text' class='GRIDControl' />")
+		this.$grid.prepend(this.board.$el);
 		if(this.controls){
 			this.controls.reattach();
 		}
@@ -208,8 +211,9 @@ $.Snake.prototype = {
 			width = (parseInt(self.$grid.find(".cell").css("width"))*self.vals.grid[0])+self.vals.grid[0];
 			height = (parseInt(self.$grid.find(".cell").css("height"))*self.vals.grid[1])+self.vals.grid[1];
 			self.$grid.css({width:width+"px",height:height+"px"});
-			self.vals.$el.find(".GRIDControl").css({width:width+"px",height:height+"px"});
-			self.$grid.find(".GRIDControl").focus();
+			if(!self.isMobile){
+				self.vals.$el.find(".GRIDControl").css({width:width+"px",height:height+"px"}).focus();
+			}
 		},100)
 	},
 	validateGrid: function(grid){
@@ -342,7 +346,7 @@ $.Snake.prototype = {
 	},
 	attachEvents: function(){
 		var target = this.defSnake;
-		if(target){
+		if(target && !this.isMobile){
 			this.vals.$el.find(".GRIDControl").off("keydown").keydown(function(e){
 				switch(e.keyCode){
 					case 37:
@@ -365,7 +369,7 @@ $.Snake.prototype = {
 	},
 	attachControls: function(){
 		var c = this.vals.controls || false;
-		if(c === true || (c === "auto" && /Android|Mobile/gi.test(navigator.userAgent))){
+		if(c === true || (c === "auto" && this.isMobile)){
 			this.controls = new $.Snake.Controls(this);
 		}
 	}
@@ -885,13 +889,13 @@ $.Snake.Controls.prototype = {
 		}
 	},
 	buttonClick: function(el){
-		console.log(this.board)
 		var target = this.board.defSnake || false,
 			dir = $(el).data("action") || false;
 		if(target && dir){
 			target.changeDir(dir);
 		}
-		this.board.$grid.find(".GRIDControl").focus();
+		if(!this.board.isMobile)
+			this.board.$grid.find(".GRIDControl").focus();
 	}
 }
 // jQuery Plugin
