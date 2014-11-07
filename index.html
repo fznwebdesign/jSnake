@@ -3,14 +3,15 @@
     <head>
 		<title>jQuery Snake</title>
 		<!-- jQuery Libraries to reduce my coding time a little bit -->
-		<script type="text/javascript" src="jquery-2.0.3.min.js"></script>
-		<script type="text/javascript" src="jSnake.js"></script>
+		<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+		<script type="text/javascript" src="js/jSnake.js"></script>
 		<script type="text/javascript">
 			$(document).ready(function(){
 				/* Game Starter */
 				$("#GridContainer").Snake({
 					grid:[25,25],
-					score:true
+					score:true,
+					controls: "auto"
 				});
 				
 				// Open-Close Control Tab
@@ -70,7 +71,7 @@
 				}
 			})
 		</script>
-		<link rel="stylesheet" type="text/css" href="styles.css">
+		<link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
 
     <body>
