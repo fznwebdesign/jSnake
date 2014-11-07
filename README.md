@@ -1,4 +1,4 @@
-jSnake v1.0.1
+jSnake v1.1.0
 ======
 
 A hobby project to create a jQuery snake plugin.
