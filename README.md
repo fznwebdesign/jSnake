@@ -1,21 +1,23 @@
-jSnake v1.0
+jSnake v1.0.1
 ======
 
 A hobby project to create a jQuery snake plugin.
 
-Please check the [wiki](https://github.com/fznwebdesign/jSnake/wiki) for implementation instructions and tips, just to make sure you are leveraging all the game's features.
+Please check the [wiki](https://github.com/fznwebdesign/jSnake/wiki) for implementation guide and tips, just to make sure you are leveraging all the game's features.
 
 ## Requirements
 
-This project uses jQuery 2.0.3 which is only compatible with IE9 or later.
+This project uses jQuery 1.11.1 which is compatible with all mayor modern browsers.
 
-To run on IE8- you can try with a older version of jQuery, but I cannot assure it will fully work.
+To run on older versions of IE, you can try with a older version of jQuery, but I cannot assure it will fully work.
 
 ## Controls
 
 In order to control your Snake, you need to click on the board to start catching the keyboard events.
 
 The movement of your snake is controlled by the arrow keys.
+
+For mobile devices, there is a graphic interfase for controlling the snake, this can be cofigured to be always visible or never visible (more info on the wiki).
 
 ## Rules
 
@@ -36,7 +38,7 @@ There are 2 types of NPC enemy snakes:
 
 ## Score Board
 
-There is also a Score Board included on the plugin (not enabled by default), here you can track who's winning the match.
+There is also a Score Board included on the plugin (not enabled by default), there, you can track who's winning the match.
 
 ## CSS Customization
 
